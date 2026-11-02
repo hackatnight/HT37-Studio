@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ============================================================================
+  HT37 STUDIO — index.html  (application shell)         AI-READABLE DOCUMENT MAP
+  ============================================================================
+  A static, no-build web app (GitHub Pages friendly). Open index.html over https:// or http://localhost (Web Bluetooth
+  needs a secure context). Read AI_GUIDE.md first for the architecture, load order and "how do I add X" recipes.
+
+  THIS FILE CONTAINS
+    <head>   meta + stylesheet links (css/ — tokens first, then component CSS)
+    <body>   1. <header>          brand, BLE status, Pair/Flash/Export/Stop buttons      (always visible)
+             2. <nav #studioTabNav>   tab buttons — GENERATED from the page registry (js/pages/<id>/page.js)
+             3. <div class="workspace">  the HTML "POOL": static, hand-written controls that the tool cards ADOPT.
+                                        Each pooled section has an id (secAddWidgetBody, secAlertTesterBody, ...). At
+                                        DOMContentLoaded the page/mount files (js/pages/**) move those sections into
+                                        toolbox cards, then js/ui/cleanup.js hides whatever was not adopted.
+             4. <script> list      ordered; classic scripts share ONE global scope (see AI_GUIDE.md)
+
+  GENERATED AT RUNTIME (do not hand-edit in the pool):
+    #studioTabNav buttons ......... HT37.ui pages
+    #studioMainContainer panes .... HT37.ui pages (one pane per registered page)
+    #widgetCardGrid, #quickAddSelect, #propFwId ... HT37.widgets  (js/editor/widgets/*.js)
+    #alertButtonGrid, #extraAlertKey .............. HT37.commands (js/protocol/command-registry.js)
+    #selAllKnownCommands (Master Command Station) . HT37.presets  (js/protocol/explorer-presets.js)
+
+  CONSTRAINT: js/ui/cleanup.js hides every <body> child except header, nav, #studioMainContainer and
+  #persistentLogDock. New always-visible UI must therefore live INSIDE <header> (or inside a page).
+  ============================================================================
+-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HT37 FitCloud Web Bluetooth WYSIWYG Watchface Studio</title>
+
+<link rel="stylesheet" href="css/10-base.css" />
+<link rel="stylesheet" href="css/20-workspace.css" />
+<link rel="stylesheet" href="css/30-decompiler.css" />
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span>⌚ HT37 Studio</span>
+    <span class="brand-badge">TopStep / FitCloud IC_568X</span>
+  </div>
+  <div class="ble-bar">
+    <div class="status-pill">
+      <div id="bleDot" class="dot"></div>
+      <span id="bleStatusText">BLE Disconnected</span>
+    </div>
+    <button id="btnConnectBle" class="primary">🔗 1. Pair & Bind</button>
+    <button id="btnFlashWatch" class="success">⚡ 3. Flash to Watch</button>
+    <button id="btnCompileBin">📦 Export .BIN</button>
+    <button id="btnStopBle" class="danger">🛑 Stop</button>
+  </div>
+</header>
+<!-- STUDIO_TAB_NAV_START -->
+<nav id="studioTabNav" class="studio-tab-nav"><!-- buttons are generated from HT37.ui pages (js/ui/shell.js) --></nav>
+<!-- STUDIO_TAB_NAV_END -->
+
+<div class="workspace">
+  <div class="panel">
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secAddWidgetBody')">
+      <span>1. Add Widget Layer <span class="caret">▾</span></span>
+      <span style="font-size:10px;color:var(--accent)">Click to Toggle</span>
+    </div>
+    <div class="section-body" id="secAddWidgetBody">
+      <div class="widget-grid" id="widgetCardGrid"><!-- cards are generated from HT37.widgets (js/ui/pool-generators.js) -->
+      </div>
+    </div>
+
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secScreenBgBody')">
+      <span>2. Watch Screen & Background Layer <span class="caret">▾</span></span>
+      <span style="font-size:9px;color:var(--text-muted)">Toggle</span>
+    </div>
+    <div class="section-body" id="secScreenBgBody">
+      <div class="field-row">
+        <label>LCD Resolution</label>
+        <select id="lcdPreset" onchange="updateScreenPreset()">
+          <option value="360x360x0" selected>360×360 Circle (HT37)</option>
+          <option value="454x454x0">454×454 Circle (AMOLED)</option>
+          <option value="466x466x0">466×466 Circle (HD)</option>
+          <option value="240x240x0">240×240 Circle</option>
+          <option value="240x284x1">240×284 Rectangle</option>
+          <option value="320x385x1">320×385 Rectangle</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Background Style</label>
+        <select id="bgPreset" onchange="updateBgTheme()">
+          <option value="tactical">Tactical Radar Grid</option>
+          <option value="cyber">Cyberpunk Carbon</option>
+          <option value="deepblue">Abyssal Diver</option>
+          <option value="oled">Pure OLED Black</option>
+          <option value="image">Custom Image Upload</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Upload BG Image</label><input type="file" id="bgFileInput" accept="image/*" style="width:155px;font-size:11px" /></div>
+      <div class="field-row"><label>BG Image Control</label><button id="btnDeleteBg" class="danger" onclick="deleteBackgroundImage()" disabled style="width:155px;justify-content:center;">🗑️ Delete BG Image</button></div>
+      <div class="field-row">
+        <label>Watchface (02/70)</label>
+        <div style="display:flex;gap:4px">
+          <select id="dialSlotSelect" onchange="activateWatchDialSlot()" style="width:105px">
+            <option value="0">Watchface 0</option>
+            <option value="1" selected>Watchface 1</option>
+            <option value="2">Watchface 2</option>
+            <option value="3">Watchface 3</option>
+            <option value="4">Watchface 4</option>
+            <option value="5">Watchface 5</option>
+          </select>
+          <button class="primary" onclick="activateWatchDialSlot()" title="Verified Cmd=0x02, Key=0x70: Switch active watchface on watch">🎨 Switch</button>
+        </div>
+      </div>
+      <div class="alert-grid" style="grid-template-columns:repeat(6,1fr);gap:2px;">
+        <button onclick="switchWatchfaceByIndex(0)" style="font-size:9px;padding:3px 2px;">⌚ WF 0</button>
+        <button onclick="switchWatchfaceByIndex(1)" style="font-size:9px;padding:3px 2px;">⌚ WF 1</button>
+        <button onclick="switchWatchfaceByIndex(2)" style="font-size:9px;padding:3px 2px;">⌚ WF 2</button>
+        <button onclick="switchWatchfaceByIndex(3)" style="font-size:9px;padding:3px 2px;">⌚ WF 3</button>
+        <button onclick="switchWatchfaceByIndex(4)" style="font-size:9px;padding:3px 2px;">⌚ WF 4</button>
+        <button onclick="switchWatchfaceByIndex(5)" style="font-size:9px;padding:3px 2px;">⌚ WF 5</button>
+      </div>
+    </div>
+
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secSensorWeatherBody')">
+      <span>3. Live Sensor & Weather <span class="caret">▾</span></span>
+      <div style="display:flex;gap:4px;">
+        <button onclick="event.stopPropagation(); enableDeviceOrientation()" style="padding:2px 6px;font-size:10px">🧭 Gyro</button>
+      </div>
+    </div>
+    <div class="section-body" id="secSensorWeatherBody">
+      <div class="compact-slider-row"><label>🧭 Heading</label><input type="range" id="simHeading" min="0" max="359" value="42" /><span class="compact-slider-val"><span id="valHeading">42</span>°</span></div>
+      <div class="compact-slider-row"><label>❤️ Heart BPM</label><input type="range" id="simHr" min="45" max="195" value="76" /><span class="compact-slider-val"><span id="valHr">76</span></span></div>
+      <div class="compact-slider-row"><label>👟 Steps</label><input type="range" id="simSteps" min="0" max="15000" value="6840" /><span class="compact-slider-val"><span id="valSteps">6840</span></span></div>
+      <div class="compact-slider-row"><label>⛰️ Baro hPa</label><input type="range" id="simBaro" min="950" max="1050" value="1013" /><span class="compact-slider-val"><span id="valBaro">1013</span></span></div>
+      <div class="compact-slider-row"><label>🔋 Battery</label><input type="range" id="simBat" min="1" max="100" value="50" /><span class="compact-slider-val"><span id="valBat">50</span>%<span id="chgBat" title="Charging"></span></span></div>
+      <div class="compact-slider-row"><label>🌤️ Weather</label><input type="range" id="simWeatherTemp" min="-15" max="45" value="22" /><span class="compact-slider-val"><span id="valWeatherTemp">22</span>°C</span></div>
+      <div class="field-row" style="margin-top:1px;">
+        <label>🌦️ Sky Condition</label>
+        <select id="simWeatherCond" onchange="sensors.weatherCond = this.value; updateLiveSensorReadout();">
+          <option value=" Sunny (05/01)" selected>☀️ 0x01 - Sunny</option>
+          <option value=" Cloudy (05/02)">⛅ 0x02 - Cloudy</option>
+          <option value=" Overcast (05/03)">☁️ 0x03 - Overcast</option>
+          <option value=" Shower (05/04)">🌦️ 0x04 - Shower</option>
+          <option value=" Thunder (05/05)">⛈️ 0x05 - Thundershower</option>
+          <option value="LIGHTRAIN">🌧️ 0x06 - Light Rain</option>
+          <option value=" ModRain (05/07)">🌧️ 0x07 - Moderate Rain</option>
+          <option value=" Sleet (05/08)">🌨️ 0x08 - Sleet</option>
+          <option value="LIGHTSNOW">🌨️ 0x09 - Light Snow</option>
+          <option value=" ModSnow (05/0A)">❄️ 0x0A - Moderate Snow</option>
+          <option value="SANDSTORM">🌪️ 0x0B - Sandstorm</option>
+          <option value=" Foggy (05/0C)">🌫️ 0x0C - Foggy</option>
+          <option value="UNKNOWN">❓ 0x00 - Unknown</option>
+        </select>
+      </div>
+      <div style="border-top:1px solid var(--panel-border);padding-top:4px;margin-top:2px;display:flex;flex-direction:column;gap:3px;">
+        <div class="field-row">
+          <label>🌡️ Cur/Min/Max °C</label>
+          <div style="display:flex;gap:3px;width:150px;">
+            <input type="number" id="liveTempCur" value="22" style="width:48px;font-size:10px;padding:2px 4px;" title="Current Temp °C" oninput="sensors.weatherTemp=Number(this.value);document.getElementById('simWeatherTemp').value=this.value;document.getElementById('valWeatherTemp').textContent=this.value;updateLiveSensorReadout();" />
+            <input type="number" id="liveTempMin" value="16" style="width:48px;font-size:10px;padding:2px 4px;" title="Min Temp °C" oninput="updateLiveSensorReadout();" />
+            <input type="number" id="liveTempMax" value="26" style="width:48px;font-size:10px;padding:2px 4px;" title="Max Temp °C" oninput="updateLiveSensorReadout();" />
+          </div>
+        </div>
+        <div class="field-row">
+          <label>📊 Live Sensors</label>
+          <input type="text" id="liveSensorSummary" value="HDG:42° HR:76 STP:6840" readonly style="width:150px;font-size:9px;padding:2px 5px;color:var(--text-main);" />
+        </div>
+        <div class="field-row">
+          <label>📡 Weather Hex</label>
+          <input type="text" id="liveSensorHex" value="16 10 1A 02 | 1013hPa 50%" readonly style="width:150px;font-size:9px;padding:2px 5px;color:var(--accent);" />
+        </div>
+        <div class="field-row" style="gap:4px;">
+          <select id="watchTimeUnitSelect" onchange="applyWatchUnitsAndTime()" style="flex:1;min-width:0;width:auto;font-size:10px;padding:3px 4px;" title="Watch 12H/24H & °C/°F Function Switch (0x02/0x18)">
+            <option value="24_C">🕒 24H + °C (03 EB)</option>
+            <option value="12_C">🕒 12H + °C (03 EF)</option>
+            <option value="12_F" selected>🕒 12H + °F (03 FF)</option>
+            <option value="24_F">🕒 24H + °F (03 FB)</option>
+          </select>
+          <select id="weatherFmtSelect" style="flex:1;min-width:0;width:auto;font-size:10px;padding:3px 4px;" title="Verified HT37 Weather Key 0x02/0x36">
+            <option value="key_36_7b" selected>✅ 0x36 Weather (7B)</option>
+            <option value="key_36_city">0x36 + City Name</option>
+            <option value="key_36_b3">0x36 (Code in Byte3)</option>
+            <option value="key_36_b4">0x36 (Code in Byte4)</option>
+          </select>
+        </div>
+        <div class="field-row" style="gap:4px;">
+          <button class="primary" onclick="pushWeatherToWatch()" style="flex:1;justify-content:center;padding:4px 6px;font-size:10px;">🌤️ Push Weather</button>
+          <button class="warn" onclick="cycleAllSkyCodes()" title="Cycles SkyCode 0x01..0x0C on 0x02/0x36" style="padding:4px 6px;font-size:10px;">🎞️ Sky</button>
+        </div>
+        <div class="alert-grid" style="grid-template-columns:repeat(4,1fr);gap:2px;margin-top:2px;">
+          <button onclick="setAndPushSky(' Sunny (05/01)', 0x01, ' Sunny (05/01)')" style="font-size:9px;padding:3px 2px;">☀️ Sunny (05/01)</button>
+          <button onclick="setAndPushSky(' Cloudy (05/02)', 0x02, ' Cloudy (05/02)')" style="font-size:9px;padding:3px 2px;">⛅ Cloudy (05/02)</button>
+          <button onclick="setAndPushSky(' Overcast (05/03)', 0x03, ' Overcast (05/03)')" style="font-size:9px;padding:3px 2px;">☁️ Overcast (05/03)</button>
+          <button onclick="setAndPushSky(' Shower (05/04)', 0x04, ' Shower (05/04)')" style="font-size:9px;padding:3px 2px;">🌦️ Shower (05/04)</button>
+          <button onclick="setAndPushSky(' Thunder (05/05)', 0x05, 'Thundershower')" style="font-size:9px;padding:3px 2px;">⛈️ Thunder (05/05)</button>
+          <button onclick="setAndPushSky('LIGHTRAIN', 0x06, 'Light Rain')" style="font-size:9px;padding:3px 2px;">🌧️ LtRain (05/06)</button>
+          <button onclick="setAndPushSky(' ModRain (05/07)', 0x07, 'Moderate Rain')" style="font-size:9px;padding:3px 2px;">🌧️ ModRain (05/07)</button>
+          <button onclick="setAndPushSky(' Sleet (05/08)', 0x08, ' Sleet (05/08)')" style="font-size:9px;padding:3px 2px;">🌨️ Sleet (05/08)</button>
+          <button onclick="setAndPushSky('LIGHTSNOW', 0x09, 'Light Snow')" style="font-size:9px;padding:3px 2px;">🌨️ LtSnow (05/09)</button>
+          <button onclick="setAndPushSky(' ModSnow (05/0A)', 0x0a, 'Moderate Snow')" style="font-size:9px;padding:3px 2px;">❄️ ModSnow (05/0A)</button>
+          <button onclick="setAndPushSky('SANDSTORM', 0x0b, 'Sandstorm')" style="font-size:9px;padding:3px 2px;">🌪️ Sand (05/0B)</button>
+          <button onclick="setAndPushSky(' Foggy (05/0C)', 0x0c, ' Foggy (05/0C)')" style="font-size:9px;padding:3px 2px;">🌫️ Foggy (05/0C)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-toolbar">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="checkbox" id="chkShowGuides" checked /> Snap Grid & Bezel Marks</label>
+      <span style="color:#303c54">|</span>
+      <button onclick="centerSelectedWidget()">🎯 Center Layer</button>
+      <button onclick="duplicateSelectedWidget()">⧉ Duplicate Layer</button>
+      <button class="danger" onclick="deleteSelectedWidget()">🗑️ Remove Layer</button>
+      <span style="color:#303c54">|</span>
+      <button onclick="resetDefaultWatchface()">🔄 Reset Preset</button>
+    </div>
+    <div id="watchChassis" class="watch-chassis">
+      <div class="ht37-lug-top"></div>
+      <div id="ht37FlashlightBubble" class="ht37-flashlight-bubble" onclick="this.classList.toggle('lit');log('🔦 Toggled HT37 Top LED Flashlight Bubble preview.', 'ok');" title="HT37 Top Clear LED Flashlight Bubble (Click to toggle glow)"></div>
+      <div class="ht37-btn top-left" onclick="document.getElementById('ht37FlashlightBubble').classList.toggle('lit');log('🔦 Pressed Top-Left [LIGHT] Pusher.', 'ok');" title="Top-Left Button: Flashlight"><span class="ht37-btn-label">🔦 LIGHT</span></div>
+      <div class="ht37-btn top-right" onclick="log('⚡ Pressed Top-Right [POWER] Pusher.', 'tx');" title="Top-Right Button: Power / Back"><span class="ht37-btn-label">POWER ⚡</span></div>
+      <div class="ht37-btn bot-left" onclick="log('🛰️ Pressed Bottom-Left [GPS] Pusher.', 'tx');" title="Bottom-Left Button: GPS / Tactical"><span class="ht37-btn-label">🛰️ GPS</span></div>
+      <div class="ht37-btn bot-right" onclick="log('🏃 Pressed Bottom-Right [SPORT] Pusher (Main Menu).', 'tx');" title="Bottom-Right Button: Sport / Main Menu"><span class="ht37-btn-label">SPORT 🏃</span></div>
+      <div class="ht37-lug-bot"></div>
+      <canvas id="watchCanvas" width="360" height="360" style="position:relative;z-index:2;"></canvas>
+    </div>
+  </div>
+
+  <div class="panel right">
+    <!-- WATCH ALERT & COMMAND TESTER WINDOW -->
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secAlertTesterBody')">
+      <span>🔔 Watch Alert & Command Tester <span class="caret">▾</span></span>
+      <button class="warn" onclick="event.stopPropagation(); enableAllWatchAlerts()" style="padding:2px 7px;font-size:10px" title="Writes Cmd=0x02, Key=0x12=[FF FF FF FF] so SMS & all App notices are enabled">🔓 Enable All Alerts</button>
+    </div>
+    <div class="section-body" id="secAlertTesterBody">
+      <div class="field-row">
+        <label>Caller / Sender</label>
+        <input type="text" id="alertSender" value="HT37 Studio" placeholder="Caller or App" style="width:205px" />
+      </div>
+      <div class="field-row">
+        <label>Alert Message</label>
+        <input type="text" id="alertMsg" value="Watch Link OK!" placeholder="Message text..." style="width:205px" />
+      </div>
+      <div class="field-row">
+        <label>Text Encoding</label>
+        <select id="alertFormat" style="width:205px">
+          <option value="ht37struct" selected>1. [SenderLen, Sender, 00, MsgLen, Msg] (Exact!)</option>
+          <option value="singlelen">2. [FullTextLen, FullText, 00]</option>
+          <option value="typeprefix">3. Header [01] + Null-Padded UTF-8</option>
+          <option value="nullsep">4. [SenderLen, Sender, 00, Msg, 00]</option>
+          <option value="plain">5. Raw UTF-8 (No Header Byte)</option>
+        </select>
+      </div>
+      <div class="alert-grid" id="alertButtonGrid">
+        <button class="danger" onclick="triggerFactoryResetPrompt()" title="Cmd=0x02, Key=0x40: Plays beep and factory resets watch">⚠️ Reset (02/40)</button>
+        <button class="warn" onclick="sendWatchChime('FIND_WATCH_CHIME')" title="Cmd=0x02, Key=0x3B=[01]: Verified Find Watch Chime & Screen Alert" style="grid-column:span 3;">🔊 Find Watch Chime (02/3B)</button>
+      </div>
+      <div class="raw-cmd-Row" style="display:flex;gap:4px;align-items:center;margin-top:2px;">
+        <select id="extraAlertKey" style="flex:1;width:auto;font-size:10px;padding:3px 5px;"><!-- options are generated from the registry (js/ui/pool-generators.js) --></select>
+        <button class="primary" style="padding:3px 7px;font-size:10px" onclick="const s=document.getElementById('extraAlertKey');sendWatchAlert(parseInt(s.value,16), s.options[s.selectedIndex].text)">🔔 Send Icon</button>
+        <button class="warn" style="padding:3px 7px;font-size:10px" title="Cycles through all verified HT37 notification icons (04/04..04/15)" onclick="(async()=>{for(const k of [0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x15, 0x07]){if(abortBleOperation)break;await sendWatchAlert(k,'AllTest_0x'+k.toString(16));await new Promise(r=>setTimeout(r,2000));}})()">🎞️ ALL TEST</button>
+      </div>
+
+      <div class="raw-cmd-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--accent);font-family:var(--font-mono)">
+          <span>🧪 Custom L2 Command Sender</span>
+          <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer">
+            <input type="checkbox" id="rawAsAscii" /> Payload is Text
+          </label>
+        </div>
+        <div class="raw-cmd-row">
+          <select id="rawPresetSelect" onchange="const p=this.value.split('|');document.getElementById('rawCmd').value=p[0];document.getElementById('rawKey').value=p[1];document.getElementById('rawPayload').value=p[2];" style="width:100%;font-size:10px;padding:3px 5px;">
+              <option value="0x07|0x03|02">▶️ Media: Play (0x07 / 0x03=[02])</option>
+              <option value="0x07|0x03|03">⏭️ Media: Next Track (0x07 / 0x03=[03])</option>
+              <option value="0x07|0x03|04">⏮️ Media: Prev Track (0x07 / 0x03=[04])</option>
+              <option value="0x07|0x03|05">🔊 Media: Volume Up (0x07 / 0x03=[05])</option>
+              <option value="0x07|0x03|06">🔉 Media: Volume Down (0x07 / 0x03=[06])</option>
+            <option value="0x04|0x04|04 48 54 33 37 00 09 4C 32 20 57 6F 72 6B 73 21 00 00" selected>💬 Vibrate + SMS Popup: "HT37: L2 Works!" (0x04 / 0x04)</option>
+            <option value="0x04|0x0c|08 57 68 61 74 73 41 70 70 00 0B 48 54 33 37 20 52 65 61 64 79 21 00 00">📲 Vibrate + WhatsApp Popup: "HT37 Ready!" (0x04 / 0x0C)</option>
+            <option value="0x04|0x07|08 46 61 63 65 62 6F 6F 6B 00 09 50 69 6E 67 20 54 65 73 74 00 00">📘 Vibrate + Facebook Popup: "Ping Test" (0x04 / 0x07)</option>
+            <option value="0x04|0x08|04 58 2D 48 51 00 08 52 61 77 20 54 65 73 74 00 00">𝕏 Vibrate + X/Twitter Popup: "X-HQ: Raw Test" (0x04 / 0x08)</option>
+            <option value="0x04|0x01|08 43 41 4C 4C 20 4E 4F 57 00 00 00 00">📞 Vibrate Incoming Call: "CALL NOW" (0x04 / 0x01)</option>
+            <option value="0x04|0x02|00">☎️ Dismiss / End Incoming Call (0x04 / 0x02)</option>
+            <option value="0x05|0x23|01 00">❤️ Start Green LEDs: Live Heart Rate Stream (0x05 / 0x23 = 01 00)</option>
+            <option value="0x05|0x23|02 00">🩸 Start Red+Green LEDs: SpO2 / BP Mode 2 (0x05 / 0x23 = 02 00)</option>
+            <option value="0x05|0x23|04 00">🔴 Start Red+Green LEDs: SpO2 / BP Mode 4 (0x05 / 0x23 = 04 00)</option>
+            <option value="0x05|0x23|00 00">🛑 Stop All Watch Optical LEDs (0x05 / 0x23 = 00 00)</option>
+            <option value="0x02|0x1b|">🔋 Query Watch Battery % (0x02 / 0x1B -> Replies 0x1C)</option>
+            <option value="0x02|0x7d|01">📐 Query Watch 360x360 GUI Info (0x02 / 0x7D [01] -> Replies 0x7E)</option>
+            <option value="0x02|0xae|01">💾 Query Watch Flash Space (0x02 / 0xAE [01] -> Replies 0xAF)</option>
+            <option value="0x02|0xb0|01">🔍 Query Watch Key 0xB0 (0x02 / 0xB0 [01] -> Replies 0xB7)</option>
+            <option value="0x02|0x3b|01">🔊 Find Watch Chime + Screen Alert (Verified 0x02 / 0x3B = 01)</option>
+            <option value="0x02|0x70|01">⌚ Switch Watchface to Slot 1 (Verified 0x02 / 0x70 = 01)</option>
+            <option value="0x02|0x70|02">⌚ Switch Watchface to Slot 2 (Verified 0x02 / 0x70 = 02)</option>
+            <option value="0x02|0x70|03">⌚ Switch Watchface to Slot 3 (Verified 0x02 / 0x70 = 03)</option>
+            <option value="0x02|0x36|16 10 1A 01 01 01 01">🌤️ Push Weather 22°C Sunny (0x02 / 0x36 = [Cur Min Max Sky ...])</option>
+            <option value="0x02|0x18|03 EF">🕒 Set Watch 12-Hour + °C + Weather ON (0x02 / 0x18 = 03 EF)</option>
+            <option value="0x02|0x18|03 EB">🕒 Set Watch 24-Hour + °C + Weather ON (0x02 / 0x18 = 03 EB)</option>
+            <option value="0x02|0xc8|">🎨 Query Active Watchface Slots (0x02 / 0xC8 -> Replies 0xC9)</option>
+            <option value="0x02|0x20|01">📋 Query Full Watch DeviceInfo TLVs (0x02 / 0x20 -> Replies 0x21)</option>
+          </select>
+        </div>
+        <div class="raw-cmd-row">
+          <input type="text" id="rawCmd" class="hex-in" value="0x04" title="Command ID (Hex)" />
+          <input type="text" id="rawKey" class="hex-in" value="0x04" title="Key ID (Hex)" />
+          <input type="text" id="rawPayload" class="payload-in" value="04 48 54 33 37 00 09 4C 32 20 57 6F 72 6B 73 21 00 00" placeholder="Hex bytes or text" />
+          <button class="warn send-sm" onclick="sendCustomRawL2()" title="Send Custom L2 Command" style="background:rgba(255,171,0,0.22);border:1px solid var(--warn);color:var(--success);font-size:13px;padding:3px 9px;line-height:1;">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secDfuEngineBody')">
+      <span>FitCloud .BIN & IC_568X DFU Engine <span class="caret">▾</span></span>
+      <button onclick="event.stopPropagation(); fetchCloudTemplate()" style="padding:2px 7px;font-size:10px">☁️ Fetch HT37 Template</button>
+    </div>
+    <div class="section-body" id="secDfuEngineBody">
+      <div style="font-size:10px;color:var(--accent);font-family:var(--font-mono);margin-bottom:2px;">🚀 Service 9966 (FFB1/FFB2) IC_568X Upload Mode Control:</div>
+      <div class="alert-grid" style="grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;">
+        <button class="success" onclick="triggerWhiteArrowFfb1()" title="Sends [01 00 00 00 00 00 00 00 01 C3 01 00 04] to 0000ffb1 on Service 00009966!" style="grid-column:span 2;padding:6px;font-size:11px;">🚀 1. Trigger White Arrow Upload Mode (FFB1)</button>
+        <button class="primary" onclick="probeFfb1SecondStep()" title="Triggers White Arrow (0x01) then tests OpCode 0x20 / 0x02 / 0x03 / 0x04 to see which one advances past 0%!">🔬 2. Probe FFB1 Step 2 (0x20/0x02)</button>
+        <button onclick="testSingleUploadCandidate('clean_tlvs')" title="Restores clean factory values to TLV 0x24..0x59">🛠️ Clean Config TLVs</button>
+      </div>
+      <div class="field-row">
+        <label>FFB1 Data OpCode</label>
+        <select id="ffb1DataOpcode" style="width:205px">
+          <option value="0x04" selected>Op 0x04 (Verified 0x84=[00] OK!)</option>
+          <option value="0x05">Op 0x05 (Verified 0x85=[00] OK!)</option>
+          <option value="0x02">Op 0x02 (After 0x04/0x05 Init)</option>
+          <option value="0x03">Op 0x03 (After 0x04/0x05 Init)</option>
+        </select>
+      </div>
+      <div class="field-row" style="display:none;">
+        <label>Probe / Flash Scope</label>
+        <select id="probeScopeSelect" style="width:205px">
+          <option value="prequery_then_b0_and_0103" selected>1. Pre-Query</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Pixel Endianness</label>
+        <select id="rgbEndian" style="width:205px">
+          <option value="le">RGB565 Little-Endian (Realtek)</option>
+          <option value="be" selected>RGB565 Big-Endian (IC_568X)</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>BLE Chunk Size</label>
+        <select id="dfuChunkSize" style="width:205px">
+          <option value="128">128B Payload (140B Frame - Ultra Safe)</option>
+          <option value="228" selected>228B Payload (240B Frame - Exact MTU)</option>
+          <option value="240">240B Payload (252B Frame - Max 253B)</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Base Template (.bin)</label><input type="file" id="templateBinInput" accept=".bin" style="width:205px;font-size:11px" /></div>
+      <div class="progress-wrap" id="dfuProgressWrap"><div class="progress-bar" id="dfuProgressBar"></div></div>
+      <div class="progress-label" id="dfuProgressLabel">0% (0 / 0 KB)</div>
+    </div>
+
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'secWidgetLayersBody')">
+      <span>Widget Layers (<span id="layerCountBadge">0</span>) <span class="caret">▾</span></span>
+      <button onclick="event.stopPropagation(); clearAllWidgets()" class="danger" style="padding:2px 7px;font-size:10px">Clear All</button>
+    </div>
+    <div class="section-body" id="secWidgetLayersBody">
+      <div class="layer-toolbar">
+        <select id="quickAddSelect"><!-- options are generated from the registry (js/ui/pool-generators.js) --></select>
+        <button class="primary" onclick="addWidget(document.getElementById('quickAddSelect').value)">+ Add</button>
+      </div>
+      <div id="layerList" class="layer-list"></div>
+    </div>
+
+    <div class="section-title collapsible" onclick="toggleSectionCollapse(this, 'inspectorBody')">
+      <span>Selected Layer Inspector <span class="caret">▾</span></span>
+      <span id="selWidgetTag" style="color:var(--accent);font-family:var(--font-mono)">NONE</span>
+    </div>
+    <div class="section-body" id="inspectorBody">
+      <div class="field-row"><label>Layer Name</label><input type="text" id="propName" oninput="applyInspector()" /></div>
+      <div class="field-row"><label>Position X / Y</label><div style="display:flex;gap:4px"><input type="number" id="propX" style="width:74px" onchange="applyInspector()" /><input type="number" id="propY" style="width:74px" onchange="applyInspector()" /></div></div>
+      <div class="field-row"><label>Scale / Size</label><input type="range" id="propScale" min="0.4" max="2.5" step="0.05" value="1" oninput="applyInspector()" /></div>
+      <div class="field-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.15" max="1" step="0.05" value="1" oninput="applyInspector()" /></div>
+      <div class="field-row"><label>Primary & Accent</label><div style="display:flex;gap:6px"><input type="color" id="propColor" value="#00e5ff" oninput="applyInspector()" /><input type="color" id="propAccent" value="#00e676" oninput="applyInspector()" /></div></div>
+      <div class="field-row"><label>Label / Format</label><input type="text" id="propText" placeholder="Custom tag..." oninput="applyInspector()" /></div>
+      <div class="field-row">
+        <label>Firmware Widget ID</label>
+        <select id="propFwId" onchange="applyInspector()"><!-- options are generated from the registry (js/ui/pool-generators.js) --></select>
+      </div>
+      <div class="field-row" style="margin-top:4px">
+        <button onclick="duplicateSelectedWidget()" style="flex:1;justify-content:center">⧉ Duplicate</button>
+        <button class="danger" onclick="deleteSelectedWidget()" style="flex:1;justify-content:center">🗑️ Delete Layer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-drawer">
+  <div class="terminal-wrap">
+    <div class="terminal-bar">
+      <span>BLE Protocol & DFU Logs (Highlight text or click Copy All Logs)</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="copyAllLogs()" style="padding:2px 8px;font-size:10px">📋 Copy All Logs</button>
+        <button onclick="clearLogs()" style="padding:2px 8px;font-size:10px">🧹 Clear</button>
+      </div>
+    </div>
+    <div class="terminal" id="logTerminal">
+        <!-- [FitCloud Binary Struct & Offset Inspector] moved inside Widget Layers -->
+        <div class="hex-inspector" id="hexInspector" style="margin-top:10px;font-family:var(--font-mono);font-size:10px;">
+          <strong>[FitCloud Binary Struct & Offset Inspector]</strong><br/>
+          Discovered <code>0x02/0x7E</code> = <code>[03 01 01 68 01 68 00]</code> (LCD=3, 360×360 GUI Info) &
+<code>0x02/0xAF</code> = <code>[00 00 08 26 00 08 2F 50]</code> (Flash Space)! Click "🔬 2. Discover Trigger (Safe)" to
+test their Write keys!
+        </div>
+      </div>
+  </div>
+    <!-- 🧪 HT37 Command Explorer (Full Width, Unconstrained Height) -->
+    <div class="section-card" id="commandExplorer" style="margin-top:8px;background:rgba(10,18,30,0.92);border:1px solid rgba(0,229,255,0.35);box-shadow:0 0 12px rgba(0,229,255,0.08);padding:10px;height:auto !important;max-height:none !important;overflow:visible !important;font-family:inherit;">
+      <div style="font-weight:bold;color:var(--accent,#00e5ff);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+          <span>🧪 [HT37 Command Explorer]</span>
+          <span style="font-size:9px;background:rgba(0,229,255,0.15);color:var(--accent,#00e5ff);padding:1px 6px;border-radius:3px;font-family:var(--font-mono);">1-BY-1 PROBE</span>
+        </div>
+
+        <!-- Predicted Presets Dropdown -->
+        <div style="margin-bottom:5px;">
+          <select id="explorerPresetSelect" onchange="loadExplorerPreset(this.value)" style="width:100%;font-size:10px;padding:3px 5px;background:#151b26;color:#fff;border:1px solid rgba(255,255,255,0.18);border-radius:3px;outline:none;">
+            <optgroup label="📡 Live Health & Activity Data Sync (Cmd=0x03)">
+              <option value="0x03|0x01||🏃 03/01 Sync Today's Live Steps & Activity|Asks watch to dump current live step counter, calories, and distance." selected>🏃 03/01 Sync Live Steps & Activity</option>
+              <option value="0x03|0x02||📊 03/02 Sync History Steps Data|Requests hourly activity records stored in watch flash.">📊 03/02 Sync Hourly Steps Data</option>
+              <option value="0x03|0x04||❤️ 03/04 Sync Heart Rate Sensor Records|Requests recent heart rate measurement logs from watch.">❤️ 03/04 Sync Heart Rate Records</option>
+              <option value="0x03|0x06||🩸 03/06 Sync SpO2 Blood Oxygen Records|Requests blood oxygen spot checks stored on watch.">🩸 03/06 Sync SpO2 Records</option>
+              <option value="0x03|0x03||💤 03/03 Sync Sleep Analysis Data|Requests deep/light sleep duration records.">💤 03/03 Sync Sleep Analysis</option>
+            </optgroup>
+            <optgroup label="⚡ Verified Working Device Commands">
+              <option value="0x02|0x20|01|📋 02/20=[01] Master Config & Register Dump|Triggers the full 164B hardware register dump (SoC, FW, MAC, Dials).">📋 02/20 Master Config & Register Dump</option>
+              <option value="0x02|0x3B|01|🔊 02/3B=[01] Find Watch Chime & Screen Alert|Fires the internal audio amplifier chime and lights screen.">🔊 02/3B Find Watch Chime</option>
+              <option value="0x02|0x70|01|🎨 02/70=[01] Switch to Dial Slot 1|Swaps the active displayed watch face immediately.">🎨 02/70 Switch to Dial Slot 1</option>
+              <option value="0x02|0x70|00|🎨 02/70=[00] Switch to Dial Slot 0|Swaps the active displayed watch face to default.">🎨 02/70 Switch to Dial Slot 0</option>
+              <option value="0x02|0x18|03 EB|🕒 02/18=[03 EB] Set 24H Clock + °C Units|Writes unit mode to 24-hour time and Celsius.">🕒 02/18 Set 24H + °C Units</option>
+              <option value="0x02|0x18|03 EF|🕒 02/18=[03 EF] Set 12H Clock + °C Units|Writes unit mode to 12-hour time and Celsius.">🕒 02/18 Set 12H + °C Units</option>
+              <option value="0x02|0x03|10 27 00 00|🎯 02/03=[10 27 00 00] Set Step Goal (10,000)|Writes 10k daily step target; watch returns Key=0x04 ACK.">🎯 02/03 Set Step Goal (10k)</option>
+              <option value="0x01|0x03||🎯 01/03 Query Step Goal Status|Queries step target; verified to return Key=0x04=[01].">🎯 01/03 Query Step Goal Status</option>
+              <option value="0x01|0x01||📱 01/01 Query Firmware / OTA Status|Queries firmware state; verified to return Key=0x02=[00 00].">📱 01/01 Query Firmware / OTA Status</option>
+            </optgroup>
+            <optgroup label="🔬 Dedicated Sensor Stream Probes">
+              <option value="0x06|0x01|01|📡 06/01=[01] Live PPG Stream (Cmd=0x06)|Probes the dedicated live telemetry stream bus.">📡 06/01=[01] Live Stream Bus (Cmd 0x06)</option>
+              <option value="0x06|0x02|01|📡 06/02=[01] Live Sensor Stream (Cmd=0x06)|Probes secondary sensor stream channel.">📡 06/02=[01] Live Sensor Channel</option>
+              <option value="0x01|0x15||📄 01/15 Read Screen / Page Display List|Reads the active page bitmask (Write=0x15).">📄 01/15 Read Active Screen Pages</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Editable Inputs & Send Bar -->
+        <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
+          <input type="text" id="explorerCmd" value="0x02" placeholder="Cmd" style="width:44px;font-size:10px;font-family:var(--font-mono);padding:2px 4px;background:#151b26;color:#00e5ff;border:1px solid rgba(255,255,255,0.18);border-radius:3px;" />
+          <input type="text" id="explorerKey" value="0x15" placeholder="Key" style="width:44px;font-size:10px;font-family:var(--font-mono);padding:2px 4px;background:#151b26;color:#fff;border:1px solid rgba(255,255,255,0.18);border-radius:3px;" />
+          <input type="text" id="explorerPayload" value="01" placeholder="Payload hex (e.g. 01)" style="flex:1;min-width:60px;font-size:10px;font-family:var(--font-mono);padding:2px 4px;background:#151b26;color:#fff;border:1px solid rgba(255,255,255,0.18);border-radius:3px;" />
+          <button class="primary" onclick="sendExplorerCommand()" style="padding:3px 8px;font-size:10px;white-space:nowrap;">⚡ Send</button>
+          <button onclick="advanceExplorerNext()" title="Advance to next predicted command" style="padding:3px 6px;font-size:10px;">⏭️</button>
+        </div>
+
+        <!-- Dynamic Prediction Callout -->
+        <div id="explorerPrediction" style="font-size:9px;color:var(--text-dim,#aaa);line-height:1.3;padding:3px 4px;background:rgba(0,0,0,0.3);border-radius:3px;border:1px solid rgba(255,255,255,0.06);">
+          💡 <b>Prediction:</b> Turns on green optical LEDs on back of watch; watch emits live BPM packets.
+    </div>
+    </div>
+</div>
+
+
+<!-- 1. NAMESPACE + PROTOCOL DATA  (pure data, no DOM access) -->
+<script src="js/core/namespace.js"></script>
+<script src="js/protocol/command-registry.js"></script>
+<script src="js/protocol/explorer-presets.js"></script>
+<script src="js/protocol/command-catalog.js"></script>
+<script src="js/protocol/constants.js"></script>
+
+<!-- 2. CORE  (logging, small UI helpers) -->
+<script src="js/core/log.js"></script>
+<script src="js/ui/helpers.js"></script>
+
+<!-- 3. EDITOR  (state, widget registry, widgets, renderer, layer/inspector logic) -->
+<script src="js/editor/state.js"></script>
+<script src="js/editor/widget-registry.js"></script>
+<script src="js/editor/widgets/compass.js"></script>
+<script src="js/editor/widgets/heartrate.js"></script>
+<script src="js/editor/widgets/barometer.js"></script>
+<script src="js/editor/widgets/steps.js"></script>
+<script src="js/editor/widgets/date.js"></script>
+<script src="js/editor/widgets/weather.js"></script>
+<script src="js/editor/widgets/battery.js"></script>
+<script src="js/editor/widgets/temp.js"></script>
+<script src="js/editor/widgets/digitalClock.js"></script>
+<script src="js/editor/widgets/analogClock.js"></script>
+<script src="js/editor/widgets/customText.js"></script>
+<script src="js/editor/weather-icons.js"></script>
+<script src="js/editor/font-loader.js"></script>
+<script src="js/editor/widgets/forecast.js"></script>
+<script src="js/editor/widgets/bluetooth.js"></script>
+<script src="js/editor/render.js"></script>
+<script src="js/editor/layers.js"></script>
+<script src="js/editor/canvas-input.js"></script>
+<script src="js/editor/face-widgets/analog-hand.js"></script>
+<script src="js/editor/face-widgets/number-font.js"></script>
+<script src="js/editor/history.js"></script>
+<script src="js/editor/language-strip.js"></script>
+<script src="js/editor/layer-view.js"></script>
+<script src="js/editor/live-data.js"></script>
+<script src="js/editor/diagnostic-face.js"></script>
+<script src="js/editor/forecast-face.js"></script>
+<script src="js/editor/cyberpunk-face.js"></script>
+<script src="js/editor/units.js"></script>
+<script src="js/editor/explore.js"></script>
+<script src="js/editor/sprite-groups.js"></script>
+<script src="js/editor/sprite-studio.js"></script>
+<script src="js/editor/inspector.js"></script>
+<script src="js/editor/widget-options.js"></script>
+<script src="js/editor/screen-background.js"></script>
+<script src="js/editor/sensors-sim.js"></script>
+
+<!-- 4. .BIN BUILDER  (canvas -> RGB565 -> FitCloud .bin) -->
+<script src="js/dfu/bin-compiler.js"></script>
+
+<!-- 5. BLUETOOTH  (state, frame codec, write queue, connect/bind, notifications) -->
+<script src="js/ble/state.js"></script>
+<script src="js/ble/frames.js"></script>
+<script src="js/ble/transport.js"></script>
+<script src="js/ble/connection.js"></script>
+<script src="js/ble/notifications.js"></script>
+
+<!-- 6. WATCH COMMANDS  (alerts, weather, dial slots, explorer console) -->
+<script src="js/commands/alerts.js"></script>
+<script src="js/commands/weather.js"></script>
+<script src="js/commands/live-weather.js"></script>
+<script src="js/commands/dial-slots.js"></script>
+<script src="js/protocol/explorer-runtime.js"></script>
+
+<!-- 7. FLASHING  (FFB1 upload-mode probes + IC_568X OTA engine) -->
+<script src="js/dfu/ffb1-probe.js"></script>
+<script src="js/dfu/ota.js"></script>
+<script src="js/dfu/face-builder.js"></script>
+
+<!-- 8. BOOT  (initial layout, first frame, startup log lines) -->
+<script src="js/boot.js"></script>
+
+<!-- 9. UI FRAMEWORK + PAGES  (generators fill the HTML pool, then pages/mounts register themselves) -->
+<script src="js/ui/pool-generators.js"></script>
+<script src="js/ui/shell.js"></script>
+<script src="js/pages/studio/page.js"></script>
+<script src="js/pages/alerts/page.js"></script>
+<script src="js/pages/dfu/page.js"></script>
+<script src="js/pages/logs/page.js"></script>
+<script src="js/pages/studio/toolbox.js"></script>
+<script src="js/pages/studio/tool-0-canvas-layers.js"></script>
+<script src="js/pages/studio/tool-1-add-widget.js"></script>
+<script src="js/pages/studio/tool-2-screen-background.js"></script>
+<script src="js/pages/studio/tool-3-live-sensors.js"></script>
+<script src="js/pages/alerts/toolbox.js"></script>
+<script src="js/pages/alerts/tool-0-master-command.js"></script>
+<script src="js/pages/alerts/tool-1-telephony.js"></script>
+<script src="js/pages/alerts/tool-2-social-notifications.js"></script>
+<script src="js/pages/alerts/tool-3-weather-and-dial-slots.js"></script>
+<script src="js/pages/alerts/tool-4-watch-settings.js"></script>
+<script src="js/pages/alerts/tool-5-watch-audio.js"></script>
+<script src="js/pages/alerts/tool-6-command-survey.js"></script>
+<script src="js/pages/health/health-monitor.js"></script>
+<script src="js/pages/health/health-battery.js"></script>
+<script src="js/pages/health/health-history.js"></script>
+<script src="js/pages/dfu/tools.js"></script>
+<script src="js/pages/logs/tools.js"></script>
+<script src="js/pages/studio/stage.js"></script>
+<script src="js/ui/dock.js"></script>
+<script src="js/ui/cleanup.js"></script>
+<script src="js/ui/tabs.js"></script>
+
+<!-- 10. .BIN DECOMPILER / SPRITE VAULT  (wraps drawWidget, getWidgetBounds, updateLiveSensorReadout) -->
+<script src="js/decompiler/vault.js"></script>
+<script src="js/editor/face-project.js"></script>
+
+<!-- 12. START  (must be last: schedules the page/mount run at DOMContentLoaded) -->
+<script src="js/ui/start.js"></script>
+<!-- DEV ONLY (test-face dropdown). To remove: delete this line and the js/dev/ folder. -->
+<script src="js/dev/testbins-ui.js"></script>
+</body>
+</html>

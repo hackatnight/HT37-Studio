@@ -1,0 +1,98 @@
+/** @file css/30-decompiler.css
+ * @layer Decompiler vault
+ * CONTAINS  Right-column Sprite Vault: .decomp-card, .decomp-pic, .decomp-meta, .decomp-tag, #decompSpriteGallery and collapsible folders (.decomp-folder-body, .folder-closed).
+ * NOTES     Styles elements created by js/decompiler/vault.js. Loaded last.
+ * See AI_GUIDE.md §4 for the full file map and load order.
+ */
+/*__CSSHEADER__*/
+  #studioRightCol {
+    position: sticky !important;
+    top: 50px !important;
+    align-self: start !important;
+  }
+  .decomp-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    gap: 4px;
+    box-sizing: border-box;
+  }
+  .decomp-card:hover {
+    border-color: #38bdf8;
+  }
+  .decomp-pic {
+    height: 104px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #090d16;
+    background-image: linear-gradient(45deg, #151d2d 25%, transparent 25%), linear-gradient(-45deg, #151d2d 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #151d2d 75%), linear-gradient(-45deg, transparent 75%, #151d2d 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+  }
+  .decomp-meta {
+    font-size: 10px;
+    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+  }
+  .decomp-meta b {
+    color: #e2e8f0;
+  }
+  .decomp-tag {
+    font-size: 9px;
+    padding: 1px 4px;
+    background: #1e293b;
+    color: #38bdf8;
+    border: 1px solid #334155;
+  }
+  .decomp-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 3px;
+  }
+  .decomp-actions button {
+    height: 22px !important;
+    padding: 2px 3px !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+  }
+  #decompSpriteGallery {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    max-height: 480px !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .decomp-folder-body {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    background: #070b12 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #tab-studio .decomp-folder-body.folder-closed,
+  #tab-studio .decomp-folder-body.folder-closed * {
+    display: none !important;
+  }
+  .decomp-actions button:hover {
+    background: #334155 !important;
+    color: #38bdf8 !important;
+    border-color: #38bdf8 !important;
+  }

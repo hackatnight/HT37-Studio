@@ -1,0 +1,25 @@
+# Refactor scaffolding left over from splitting the original single-file app (not used at runtime)
+.build-meta.json
+.orig-commands.js
+.pool.html
+.script-order.json
+
+# Third-party vendor watch faces and app files (not ours to redistribute)
+js/dev/
+docs/samples/
+_faces_all/
+_faces_extra/
+_faces_tmp/
+_vendor_test/
+com.topstep.fitcloudpro/
+*.zip
+ziSAp7vo
+
+# Personal health and battery logs written by the Health tab
+ht37-*.csv
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

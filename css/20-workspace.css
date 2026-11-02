@@ -1,0 +1,651 @@
+/** @file css/20-workspace.css
+ * @layer Workspace layout
+ * CONTAINS  Tab system (.studio-tab-nav/.studio-tab-btn/.studio-tab-pane), 3-column and 2-column page grids, toolbox cards (.toolbox-tool-card/-header/-body, .is-collapsed), the "universal button standard" (28px, 11px/600, square corners, cyan hover), the WYSIWYG viewport and zoom bar, bottom log dock (--dock-height 220px / 38px when body.dock-collapsed).
+ * NOTES     Uses heavy !important and id-scoped selectors (#tab-alerts …); to override, match or exceed that specificity. Sections are labeled [TAB-n / TOOL-n] in comments.
+ * See AI_GUIDE.md §4 for the full file map and load order.
+ */
+/*__CSSHEADER__*/
+  :root {
+    --top-bars-height: 86px;
+    --dock-height: 220px;
+  }
+  body.dock-collapsed {
+    --dock-height: 38px;
+  }
+
+  header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    z-index: 100 !important;
+  }
+  body {
+    padding-top: 0 !important;
+    padding-bottom: var(--dock-height) !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    transition: padding-bottom 0.2s ease !important;
+  }
+
+  /* Square Navigation Ribbon */
+  .studio-tab-nav {
+    display: flex !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 99999 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #0d121d !important;
+    border-bottom: 2px solid #1e293b !important;
+    border-top: 1px solid #1e293b !important;
+    overflow-x: auto !important;
+    min-height: 44px !important;
+    width: 100% !important;
+  }
+  .studio-tab-btn {
+    flex: 0 0 auto !important;
+    padding: 12px 24px !important;
+    background: #151c2c !important;
+    color: #94a3b8 !important;
+    border: none !important;
+    border-right: 1px solid #1e293b !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.15s ease-in-out !important;
+  }
+  .studio-tab-btn:hover {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+  }
+  .studio-tab-btn.active {
+    background: #0b0f19 !important;
+    color: #38bdf8 !important;
+    border-bottom: 3px solid #38bdf8 !important;
+    box-shadow: inset 0 -2px 8px rgba(56, 189, 248, 0.25) !important;
+  }
+
+  /* Full-width Workspace */
+  .studio-tab-container {
+    padding: 8px 12px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .studio-tab-pane {
+    display: none;
+    animation: studioFade 0.2s ease;
+  }
+  .studio-tab-pane.active {
+    display: block;
+  }
+
+  /* Tab 1: 3-Column Grid */
+  .studio-grid-3col {
+    display: grid;
+    grid-template-columns: 360px 1fr 340px;
+    gap: 12px;
+    align-items: start;
+    width: 100%;
+  }
+  @media (max-width: 1300px) {
+    .studio-grid-3col {
+      grid-template-columns: 340px 1fr;
+    }
+  }
+  @media (max-width: 900px) {
+    .studio-grid-3col {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Tab 2 & 3: 2-Column Grid (Toolbox + Stage) */
+  .studio-2col-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 12px;
+    align-items: start;
+    width: 100%;
+  }
+  @media (max-width: 900px) {
+    .studio-2col-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .studio-col-left {
+    position: sticky !important;
+    top: 50px !important;
+    align-self: start !important;
+  }
+
+  /* Standardized Left Toolbox */
+  .unified-toolbox-window {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #0d131f !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    height: auto !important;
+    max-height: calc(100vh - var(--top-bars-height) - var(--dock-height) - 16px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #38bdf8 #090d16 !important;
+    transition: max-height 0.2s ease !important;
+  }
+  .unified-toolbox-window::-webkit-scrollbar {
+    width: 6px !important;
+  }
+  .unified-toolbox-window::-webkit-scrollbar-track {
+    background: #090d16 !important;
+  }
+  .unified-toolbox-window::-webkit-scrollbar-thumb {
+    background: #334155 !important;
+    border-radius: 0 !important;
+  }
+  .unified-toolbox-window::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8 !important;
+  }
+
+  /* Tool Cards */
+  .toolbox-tool-card {
+    border-radius: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #1e293b !important;
+    background: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Compact Headers */
+  .toolbox-tool-header {
+    padding: 6px 10px !important;
+    background: #131b2a !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #cbd5e1 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: background 0.12s ease !important;
+  }
+  .toolbox-tool-header:hover {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+  }
+  .toolbox-tool-header .tool-chevron {
+    font-size: 9px !important;
+    color: #64748b !important;
+    font-weight: bold !important;
+  }
+
+  /* Tool Body */
+  .toolbox-tool-body {
+    background: #080d16 !important;
+    border-top: 1px solid #1a2333 !important;
+    padding: 10px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toolbox-tool-body.is-collapsed {
+    display: none !important;
+  }
+
+  /* Clean Input, Select, and Form Label Styles */
+  .toolbox-tool-body label {
+    font-size: 11px !important;
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    display: block !important;
+  }
+  .toolbox-tool-body input[type="text"],
+  .toolbox-tool-body select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    background: #111827 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0 !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+  }
+  .toolbox-tool-body input[type="text"]:focus,
+  .toolbox-tool-body select:focus {
+    border-color: #38bdf8 !important;
+    outline: none !important;
+  }
+
+  /* Clean Progress Bar for DFU */
+  .progress-wrap {
+    background: #111827 !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 0 !important;
+    height: 18px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    margin: 6px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, #0284c7, #38bdf8) !important;
+    height: 100% !important;
+    transition: width 0.15s ease !important;
+  }
+  .progress-label {
+    font-size: 10px !important;
+    color: #cbd5e1 !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    line-height: 18px !important;
+    position: absolute !important;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+
+  /* Center Stage Areas */
+  .studio-wysiwyg-viewport {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: radial-gradient(circle at center, #111827 0%, #070a10 100%);
+    border: 1px solid #1e293b;
+    border-radius: 0 !important;
+    position: relative;
+    height: calc(100vh - var(--top-bars-height) - var(--dock-height) - 16px);
+    overflow: hidden;
+    width: 100%;
+  }
+  .stage-info-panel {
+    background: #090d16;
+    border: 1px solid #1e293b;
+    padding: 20px;
+    min-height: calc(100vh - var(--top-bars-height) - var(--dock-height) - 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+  }
+
+  /* Zoom Bar */
+  .wysiwyg-zoom-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #1e293b;
+    border-radius: 0 !important;
+    margin-top: 8px;
+    z-index: 50;
+  }
+  .zoom-btn {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 0 !important;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .zoom-btn:hover {
+    background: #334155;
+    color: #38bdf8;
+  }
+  .zoom-indicator {
+    font-size: 11px;
+    font-weight: 700;
+    color: #38bdf8;
+    min-width: 38px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .resolution-badge {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+    padding-left: 6px;
+    border-left: 1px solid #334155;
+  }
+  .wysiwyg-scroll-stage {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    scrollbar-width: thin;
+  }
+  .watch-zoom-wrapper {
+    transform-origin: center center;
+    transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #watchChassis {
+    position: relative !important;
+    margin: auto !important;
+    background: transparent !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  }
+
+  .studio-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Persistent Bottom Dock */
+  .studio-bottom-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--dock-height);
+    background: #0b0f19;
+    border-top: 2px solid #1e293b;
+    z-index: 2000;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7);
+    transition: height 0.2s ease;
+    overflow: hidden;
+  }
+  .dock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #111827;
+    border-bottom: 1px solid #1e293b;
+    cursor: pointer;
+    user-select: none;
+    height: 38px;
+    box-sizing: border-box;
+  }
+  .dock-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+  .dock-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+  }
+  .dock-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dock-btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 0 !important;
+    cursor: pointer;
+  }
+  .dock-btn:hover {
+    background: #334155;
+    color: #38bdf8;
+  }
+  .dock-body {
+    height: calc(var(--dock-height) - 38px);
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: #05080f;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  @keyframes studioFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+    /* ==========================================================================
+     UNIVERSAL STANDARDIZED TOOLBOX BUTTON SYSTEM:
+     - Guarantees all 2-column button grids across all tools pull identical width.
+     - Enforces identical height (28px), padding (5px 6px), font (11px, 600),
+       colors (#1e293b / #334155), and cyan hover.
+     ========================================================================== */
+
+  /* 1. Ensure toolbox-tool-body is always a single-column flex parent */
+  .toolbox-tool-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Standard 2-Column Grid Container across all tools (Tool 0, 1, 2, 3) */
+  .toolbox-tool-body .canvas-tools-grid,
+  .toolbox-tool-body [style*="grid-template-columns"],
+  #tab-alerts [id*="toolCard_2"] .toolbox-tool-body > div,
+  #tab-alerts [id*="toolCard_1"] .toolbox-tool-body > div[style*="grid"],
+  #toolCard_0_studio .toolbox-tool-body > div:first-child {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 3. Universal Button Parameters for all tool action buttons */
+  .toolbox-tool-body button:not(#btnSendIcon):not(#btnSendCommandMaster):not(.warn):not([style*="background:#ef4444"]):not([style*="background:#10b981"]):not([style*="background:#f59e0b"]):not(#btnReceiveWeatherWatch) {
+    width: 100% !important;
+    height: 28px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease !important;
+  }
+
+  .toolbox-tool-body button:not(#btnSendIcon):not(#btnSendCommandMaster):not(.warn):not([style*="background:#ef4444"]):not([style*="background:#10b981"]):not([style*="background:#f59e0b"]):hover {
+    background: #334155 !important;
+    color: #38bdf8 !important;
+    border-color: #38bdf8 !important;
+  }
+  /* Universal Tactile Click Feedback: Highlights while clicked/pressed, reverts on release */
+  .toolbox-tool-body button:active,
+  .studio-tab-btn:active,
+  header button:active,
+  .dock-btn:active {
+    background: #38bdf8 !important;
+    color: #030712 !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.7) !important;
+    transform: scale(0.97) !important;
+  }
+  /* Enforce consistent 6px spacing across all form rows, button grids, and inputs */
+  .toolbox-tool-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 10px !important;
+  }
+  
+  .toolbox-tool-body input[type="text"],
+  .toolbox-tool-body select {
+    margin-bottom: 0 !important;
+  }
+  /* Tool 0 Automatic Equidistant Spacing */
+  #toolCard_0_alerts .toolbox-tool-body,
+  #toolCard_0_alerts .toolbox-tool-body > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  /* [TAB-2 / TOOL-1]: Automatic 8px Spacing for Inputs, Dropdowns & Call Buttons */
+  #tab-alerts [id*="toolCard_1"] .toolbox-tool-body,
+  #tab-alerts [id*="toolCard_1"] .toolbox-tool-body > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  #tab-alerts [id*="toolCard_1"] .form-row,
+  #tab-alerts [id*="toolCard_1"] .toolbox-tool-body > div > div:not([style*="grid"]) {
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+  }
+  #tab-alerts [id*="toolCard_1"] .toolbox-tool-body [style*="grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }  /* [TAB-2 / TOOL-3]: Strict 8px vertical gap between Push Weather, Presets Grid, and Send All */
+  #toolCard_3_alerts .toolbox-tool-body,
+  #toolCard_3_alerts .toolbox-tool-body > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  #toolCard_3_alerts .toolbox-tool-body > div > div[style*="grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+    /* ==========================================================================
+     ULTIMATE COLLAPSE OVERRIDE (2-ID Specificity beats any child grid !important)
+     ========================================================================== */
+  #tab-alerts [id*="toolCard"] .toolbox-tool-body.is-collapsed,
+  #tab-alerts [id*="toolCard"] .toolbox-tool-body.is-collapsed *,
+  #tab-studio [id*="toolCard"] .toolbox-tool-body.is-collapsed,
+  #tab-studio [id*="toolCard"] .toolbox-tool-body.is-collapsed *,
+  #tab-dfu [id*="toolCard"] .toolbox-tool-body.is-collapsed,
+  #tab-dfu [id*="toolCard"] .toolbox-tool-body.is-collapsed * {
+    display: none !important;
+  }
+  /* [TAB-1 / TOOL-0]: Enforce Universal Standard on Canvas & Layer Tools */
+  #tab-studio [id*="toolCard_0"] .toolbox-tool-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+  #tab-studio [id*="toolCard_0"] .toolbox-tool-body > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #tab-studio [id*="toolCard_0"] .toolbox-tool-body > div > div:last-child {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #tab-studio [id*="toolCard_0"] button {
+    width: 100% !important;
+    height: 28px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease !important;
+  }
+  #tab-studio [id*="toolCard_0"] button:hover {
+    background: #334155 !important;
+    color: #38bdf8 !important;
+    border-color: #38bdf8 !important;
+  }
+  /* [TAB-1 / TOOL-1]: Enforce Universal Square Standard on Widget Cards */
+  #tab-studio [id*="toolCard_1"] .toolbox-tool-body .widget-grid,
+  #tab-studio [id*="toolCard_1"] .toolbox-tool-body > div > div {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #tab-studio [id*="toolCard_1"] .widget-card {
+    border-radius: 0 !important;
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    cursor: pointer !important;
+    transition: background 0.12s ease, border-color 0.12s ease !important;
+    box-sizing: border-box !important;
+  }
+  #tab-studio [id*="toolCard_1"] .widget-card:hover {
+    background: #334155 !important;
+    border-color: #38bdf8 !important;
+  }
+  #tab-studio [id*="toolCard_1"] .widget-card:active {
+    background: #38bdf8 !important;
+    color: #030712 !important;
+    transform: scale(0.98) !important;
+  }
