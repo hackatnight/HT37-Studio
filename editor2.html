@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HT37 Studio 2 (preview)</title>
+<link rel="stylesheet" href="css/studio2.css">
+<!--
+  HT37 Studio 2: a clean, separate editor page. The classic editor (index.html) is untouched.
+  Files: js/studio2/*.js (new), plus a few classic files used only to build our own demo faces (face recipes).
+  See js/studio2/app.js for the page logic.
+-->
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">⌚</span><b>HT37 Studio</b><span class="badge">2 · preview</span></div>
+  <label class="field">Face
+    <select id="faceSelect" title="Faces built by this tool"></select>
+  </label>
+  <button id="btnOpen" class="btn">Open .bin…</button>
+  <input id="fileInput" type="file" accept=".bin" hidden>
+  <button id="btnExport" class="btn primary" title="Save the face with your changes">Export .bin</button>
+  <span class="spacer"></span>
+  <a class="btn ghost" href="index.html" title="Pairing, flashing and the diagnostic tools live in the classic editor for now">Classic editor (pair &amp; flash)</a>
+</header>
+
+<main class="grid">
+  <aside class="panel left">
+    <h2>Layers <small>top of the list is drawn last (in front)</small></h2>
+    <ul id="layerList" class="layers"></ul>
+  </aside>
+
+  <section class="stage">
+    <div class="toolbar">
+      <button id="btnPlay" class="btn small" title="Play or pause the animated background">⏸ Pause animation</button>
+      <label class="check"><input id="chkTouch" type="checkbox"> Show tap areas</label>
+      <label class="field small">Zoom
+        <select id="zoomSelect"><option value="fit">Fit</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select>
+      </label>
+      <span id="faceInfo" class="muted"></span>
+    </div>
+    <div class="watchwrap" id="watchWrap">
+      <div class="watch" id="watch">
+        <canvas id="face" width="360" height="360"></canvas>
+        <canvas id="overlay" width="360" height="360"></canvas>
+      </div>
+    </div>
+    <div class="hint" id="hint">Click a widget to select it · drag to move · arrow keys nudge 1 px (Shift = 10)</div>
+  </section>
+
+  <aside class="panel right">
+    <section id="inspector"></section>
+    <section>
+      <h2>Simulated values <small>what the preview shows; the watch uses real data</small></h2>
+      <div id="simPanel" class="sim"></div>
+    </section>
+  </aside>
+</main>
+<div id="toast" class="toast" hidden></div>
+
+<!-- core (no DOM) -->
+<script src="js/studio2/pa-codec.js"></script>
+<script src="js/studio2/catalog.js"></script>
+<script src="js/studio2/bin-model.js"></script>
+<script src="js/studio2/renderer.js"></script>
+<!-- face recipes: our own demo faces are built by these classic files -->
+<script>window.HT37_noAutoFace = true; window.HT37_noMount = true;</script>
+<script src="js/core/namespace.js"></script>
+<script src="js/editor/widget-registry.js"></script>
+<script src="js/editor/font-loader.js"></script>
+<script src="js/editor/weather-icons.js"></script>
+<script src="js/editor/widgets/bluetooth.js"></script>
+<script src="js/dfu/face-builder.js"></script>
+<script src="js/editor/diagnostic-face.js"></script>
+<script src="js/editor/cyberpunk-face.js"></script>
+<!-- page -->
+<script src="js/studio2/app.js"></script>
+</body>
+</html>

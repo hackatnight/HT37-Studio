@@ -231,3 +231,7 @@ Anyone who has never seen this tool should be able to open it and use it without
 - Built-in hints: short tips next to controls (data-tip, help line, one-line notes under sliders).
 - Sensible defaults: things work with no setup (default icon style, one-click blank face, F/miles/12-hour defaults for US users).
 A full first-time-user audit is on the to-do list in docs/UNKNOWNS.md.
+
+
+## Studio 2 (editor2.html, new, separate from the classic editor)
+A clean rewrite of the face editor in `js/studio2/` (classic scripts, namespace `HT37S`): `pa-codec.js` (picture format + checksum), `catalog.js` (what every watch widget is, in plain English, with tested/inferred/unknown status and sample values), `bin-model.js` (read a .bin, write moves in place), `renderer.js` (draws a face like the watch, incl. type 7 animations), `app.js` (page). It reuses only `face-builder.js`, `diagnostic-face.js` and `cyberpunk-face.js` (via `HT37_noMount`) to build our own faces. Not yet in Studio 2: pairing/flashing, adding widgets, sprite editing, vendor library (use `index.html`). Animation timing unit (`R.ANIM_UNIT_MS`) is a guess until measured on the watch.

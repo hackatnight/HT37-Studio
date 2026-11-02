@@ -189,12 +189,12 @@
     }
     if (!window.decompiledBinData && !window.HT37_noAutoFace) load('default face'); else reveal();
   }
-  mount(0);
+  if (!window.HT37_noMount) mount(0); // editor2.html sets HT37_noMount: it has no Decompiler card to attach to
   // Other files add faces here (e.g. js/editor/forecast-face.js). Works before or after the Load dropdown exists.
   function addFace(key, def) {
     FACES[key] = def;
     const sel = document.getElementById('selTestFace');
     if (sel && !Array.from(sel.options).some((o) => o.value === key)) { const o = document.createElement('option'); o.value = key; o.textContent = def.label; sel.appendChild(o); }
   }
-  HT37.diagFace = { rows: { left: LEFT, right: RIGHT }, buildSpec, buildProbeSpec, probes: PROBES, probes2: PROBES2, buildBin, load, addFace, helpers: { cv, pixels, textSprite, stampVer } };
+  HT37.diagFace = { rows: { left: LEFT, right: RIGHT }, buildSpec, buildProbeSpec, probes: PROBES, probes2: PROBES2, buildBin, load, addFace, faces: FACES, helpers: { cv, pixels, textSprite, stampVer } };
 })();
